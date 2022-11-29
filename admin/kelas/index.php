@@ -60,8 +60,8 @@ $query->execute([]);
 											Seluruh kelas
 										</a>
 									</li>
-									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("masuk-admin") ?>">
-										<a href="/login/admin" class="text-sm">
+									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("kelas-anda") ?>">
+										<a href="/admin/kelas/kelas-anda.php" class="text-sm">
 											Kelas Anda
 										</a>
 									</li>

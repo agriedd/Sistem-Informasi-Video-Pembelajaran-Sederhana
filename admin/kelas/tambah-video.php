@@ -19,17 +19,11 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 	
 	try {
 		
-		mkdir("../../video/kelas/{$kelas->id}/video", recursive: true);
-		$hasil = move_uploaded_file($_FILES['video']['tmp_name'], "../../video/kelas/{$kelas->id}/video/".$_FILES['video']['name']);
-
-		if(!$hasil) throw new Error("Gagal mengupload berkas!");
-		$video = "/video/kelas/{$kelas->id}/video/".$_FILES['video']['name'];
 		$query_tambah_video = "INSERT INTO video_pembelajaran (judul_video, video, keterangan, id_kelas, tanggal) VALUE (:judul_video, :video, :keterangan, :id_kelas, NOW())";
 		$query = $sambungan->prepare($query_tambah_video);
 		$hasil = $query->execute([
 			...$_POST,
 			'id_kelas' => $kelas->id_kelas,
-			'video' => $video
 		]);
 		if(!$hasil) throw new Error("Gagal menambahkan data!");
 		$sambungan->query("COMMIT");
@@ -102,9 +96,9 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 							</div>
 							<div class="mb-2">
 								<label for="video" class="text-sm text-slate-500">
-									Berkas Video
+									Link Video Youtube
 								</label>
-								<input type="file" accept="video/*" id="video" name="video" class="px-3 py-2 border rounded-md w-full" placeholder="Berkas Video">
+								<input type="text" id="video" name="video" class="px-3 py-2 border rounded-md w-full" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
 							</div>
 							<div class="mb-2">
 								<label for="keterangan" class="text-sm text-slate-500">

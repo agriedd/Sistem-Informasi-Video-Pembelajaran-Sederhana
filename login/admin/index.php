@@ -85,7 +85,7 @@
 							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
 SELECT <code class="text-pink-400">id_admin</code>, <code class="text-pink-400">email</code> FROM <code class="text-green-400">admin</code>
 	WHERE <code class="text-pink-400">email</code> = <code class="text-orange-400">'admin@vidpen.com'</code> 
-	AND <code class="text-pink-400">kata_sandi</code> = <code class="text-blue-400">MD5</code>(<code class="text-orange-400">'password'</code>);</pre>
+	AND <code class="text-pink-400">kata_sandi</code> = <code class="text-blue-400">MD5</code>(<code class="text-orange-400">'password'</code>) LIMIT 1;</pre>
 						</div>
 					</div>
 					<?php 

@@ -30,34 +30,8 @@ $query->execute([]);
 	<div class="grid grid-cols-1 justify-items-center gap-4">
 
 		<?php 
-			require_once('./navbar.php');
+			require_once('../navbar.php');
 		?>
-
-		<div class="w-full border-b flex justify-center py-4 bg-pattern">
-			<div class="w-full max-w-lg">
-				<div class="md:text-7xl text-4xl p-3 font-black text-gray-700 font-sans drop-shadow-md">
-					<span class="text-teal-500">V</span>ideo
-					Pembelajaran.
-				</div>
-				<div class="text-gray-400 text-xl px-3">
-					Sistem informasi media pembelajaran gratis berbasis video.
-				</div>
-				<div class="p-3">
-					<a href="/kelas" class="rounded-full px-4 py-3 inline-block font-normal text-white bg-teal-500 hover:shadow-2xl hover:shadow-teal-200 transition-all">
-						<div class="flex">
-							<span>
-								Jelajahi kelas
-							</span>
-							<span class="pl-3">
-								<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="bi bi-play-fill" viewBox="0 0 16 16">
-									<path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z" />
-								</svg>
-							</span>
-						</div>
-					</a>
-				</div>
-			</div>
-		</div>
 		<div class="w-full flex flex-col justify-center items-center">
 			<div class="max-w-lg w-full px-3 mb-4">
 				<div class="text-gray-600 text-xl font-bold w-full">
@@ -67,12 +41,12 @@ $query->execute([]);
 					Daftar kelas pilihan
 				</div>
 			</div>
-			<div class="flex flex-nowrap overflow-x-hidden gap-4 w-full p-4">
+			<div class="flex flex-wrap gap-4 w-full p-4 justify-center">
 			<?php
 				if ($query->rowCount()) :
 					while ($kelas = $query->fetchObject()) :
 				?>
-					<div class="rounded-3xl border border-slate-50 hover:border-slate-200 overflow-hidden bg-cover bg-center bg-no-repeat max-w-xs w-full flex-shrink-0 flex flex-col" style="background-image: url('<?=$kelas->latar ?>');">
+					<a href="/kelas/info-kelas.php?id_kelas=<?=$kelas->id_kelas ?>" class="rounded-3xl border border-slate-50 hover:border-slate-200 overflow-hidden bg-cover bg-center bg-no-repeat max-w-xs w-full flex-shrink-0 flex flex-col" style="background-image: url('<?=$kelas->latar ?>');">
 						<div class="h-24 flex justify-center items-center">
 							<div class="drop-shadow-lg fill-white p-2 flex justify-center items-center rounded-full bg-teal-500 bg-opacity-30">
 								<svg xmlns="http://www.w3.org/2000/svg" width="2.5rem" height="2.5rem" class="bi bi-play-fill" viewBox="0 0 16 16">
@@ -88,20 +62,11 @@ $query->execute([]);
 								<?=$kelas->deskripsi_singkat ?>
 							</div>
 						</div>
-					</div>
+					</a>
 				<?php
 					endwhile;
 				endif;
 				?>
-			</div>
-			<div class="max-w-lg w-full px-3 mb-4">
-				<a href="/kelas" class="border rounded-lg px-4 py-3 flex font-normal text-slate-600 bg-slate-100">
-					<div class="flex font-bold">
-						<span>
-							Kelas Lainnya
-						</span>
-					</div>
-				</a>
 			</div>
 		</div>
 	</div>

@@ -88,7 +88,7 @@ $video = $query->fetchObject();
 					endif;
 					?>
 					<div class="flex justify-center">
-						<video src="<?=$video->video ?>" style="max-height: 75vh;" controls></video>
+						<iframe width="560" height="315" src="https://www.youtube.com/embed/<?= preg_replace("/^([^v]+v=)([^&]+)(&?.*)$/i", "$2", $video->video) ?>" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					</div>
 					<div class="p-6 border-y">
 						<div class="flex">

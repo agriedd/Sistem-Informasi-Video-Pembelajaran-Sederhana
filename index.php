@@ -46,7 +46,7 @@ $query->execute([]);
 					<a href="/kelas" class="rounded-full px-4 py-3 inline-block font-normal text-white bg-teal-500 hover:shadow-2xl hover:shadow-teal-200 transition-all">
 						<div class="flex">
 							<span>
-								Jelajahi kelas
+								Jelajahi Video
 							</span>
 							<span class="pl-3">
 								<svg xmlns="http://www.w3.org/2000/svg" width="1.5rem" height="1.5rem" class="bi bi-play-fill" viewBox="0 0 16 16">

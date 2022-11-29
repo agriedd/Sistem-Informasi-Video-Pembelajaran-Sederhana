@@ -35,6 +35,30 @@
 					Kelas
 				</a>
 			</li>
+			<?php
+				if(isset($_SESSION['pengguna_aktif'])):
+			?>
+				<li class="transition-all duration-75
+								px-4 py-2 rounded-full text-slate-600
+								hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
+					<a href="/pengguna" class="text-sm">
+						Dasbor
+					</a>
+				</li>
+			<?php
+				else: 
+					if(isset($_SESSION['admin_aktif'])):
+			?>
+			<li class="transition-all duration-75
+							px-4 py-2 rounded-full text-slate-600
+							hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
+				<a href="/admin" class="text-sm">
+					Dasbor Admin
+				</a>
+			</li>
+			<?php
+					else: 
+			?>
 			<li class="transition-all duration-75
 							px-4 py-2 rounded-full text-slate-600
 							hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
@@ -42,6 +66,10 @@
 					Masuk
 				</a>
 			</li>
+			<?php
+					endif;
+				endif;
+			?>
 		</ul>
 	</div>
 	<div></div>

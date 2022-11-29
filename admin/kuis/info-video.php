@@ -14,9 +14,11 @@ $query->execute([
 ]);
 $video = $query->fetchObject();
 
-$query_mengambil_record_quiz = "SELECT * FROM kuis";
+$query_mengambil_record_quiz = "SELECT * FROM kuis WHERE id_video = :id_video";
 $query = $sambungan->prepare($query_mengambil_record_quiz);
-$query->execute([]);
+$query->execute([
+	'id_video' => $video->id_video
+]);
 
 ?>
 <!DOCTYPE html>

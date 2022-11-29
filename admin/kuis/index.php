@@ -60,13 +60,8 @@ $query->execute([]);
 										</a>
 									</li>
 									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("kuis-kelas") ?>">
-										<a href="/admin/kuis" class="text-sm">
+										<a href="/admin/kuis/kelas-anda.php" class="text-sm">
 											Kelas Anda
-										</a>
-									</li>
-									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("pertanyaan") ?>">
-										<a href="/login/pertanyaan" class="text-sm">
-											Pertanyaan
 										</a>
 									</li>
 								</ul>
