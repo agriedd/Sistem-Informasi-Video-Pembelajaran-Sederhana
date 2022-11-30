@@ -3,6 +3,54 @@
 require_once "../sambungan.php";
 
 
+if($_SERVER['REQUEST_METHOD'] == "POST"){
+	if(isset($_POST['id_pertanyaan'])){
+		/**
+		 * balasan
+		 * 
+		 */
+		$sambungan->query("START TRANSACTION");
+		try {
+			$query_tambah_kelas = "INSERT INTO balasan (pertanyaan, id_video, id_pengguna, tanggal, dukungan_naik, dukungan_turun) VALUE (:pertanyaan, :id_video, :id_pengguna, NOW(), 0, 0)";
+			$query = $sambungan->prepare($query_tambah_kelas);
+			$hasil = $query->execute([
+				...$_POST,
+				'id_video' => $_GET['id_video'],
+				'id_pengguna' => $_SESSION['pengguna_aktif']
+			]);
+			if(!$hasil) throw new Error("Gagal menambahkan pertanyaan!");
+			$sambungan->query("COMMIT");
+			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$_GET['id_video']}&sukses=1");
+			exit();
+		} catch (\Throwable $th) {
+			$sambungan->query("ROLLBACK");
+			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$_GET['id_video']}&gagal=1&pesan={$th->getMessage()}");
+			exit();
+		}
+	} else {
+		$sambungan->query("START TRANSACTION");
+		
+		try {
+			$query_tambah_kelas = "INSERT INTO pertanyaan (pertanyaan, id_video, id_pengguna, tanggal, dukungan_naik, dukungan_turun) VALUE (:pertanyaan, :id_video, :id_pengguna, NOW(), 0, 0)";
+			$query = $sambungan->prepare($query_tambah_kelas);
+			$hasil = $query->execute([
+				...$_POST,
+				'id_video' => $_GET['id_video'],
+				'id_pengguna' => $_SESSION['pengguna_aktif']
+			]);
+			if(!$hasil) throw new Error("Gagal menambahkan pertanyaan!");
+			$sambungan->query("COMMIT");
+			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$_GET['id_video']}&sukses=1");
+			exit();
+		} catch (\Throwable $th) {
+			$sambungan->query("ROLLBACK");
+			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$_GET['id_video']}&gagal=1&pesan={$th->getMessage()}");
+			exit();
+		}
+		
+	}
+}
+
 $query_mengambil_record_kelas = "SELECT id_kelas, nama_kelas, deskripsi_singkat, keterangan, latar, tanggal FROM kelas WHERE id_kelas = :id_kelas LIMIT 1";
 $query = $sambungan->prepare($query_mengambil_record_kelas);
 $query->execute([
@@ -203,49 +251,62 @@ if($video){
 							</div>
 						</div>
 					</div>
+					<?php
+						if ($_GET['sukses'] ?? '0' == 1) :
+					?>
+						<div class="p-6 bg-teal-50 text-teal-600 text-sm border-b border-teal-200">
+							Berhasil menambahkan sebuah data baru!
+						</div>
+					<?php
+						endif;
+					?>
+					<?php 
+						if($_GET['gagal'] ?? '0' == 1):
+					?>
+					<div class="p-6 bg-red-50 text-red-600 text-sm border-b border-red-200">
+						terjadi kesalahan ketika menambahkan data, coba lagi!
+					</div>
+					<?php 
+						endif;
+					?>
 					<ul class="grid grid-cols-1 divide-y divide-solid">
 						<?php
 						if ($video && $query_pertanyaan->rowCount()) :
 							while ($pertanyaan_item = $query_pertanyaan->fetchObject()) :
 						?>
-								<li class="flex">
-									<a href="?id_kelas=<?= $_GET['id_kelas'] ?>&id_pertanyaan=<?= $pertanyaan_item->id_pertanyaan ?>" class="p-3 flex h-full <?=($_GET['id_pertanyaan'] ?? $pertanyaan->id_pertanyaan) != $pertanyaan_item->id_pertanyaan ? 'hover:bg-slate-50' : 'bg-teal-50 hover:bg-teal-100' ?> group gap-6 flex-1">
+								<li class="flex flex-col">
+									<div class="p-3 flex h-full hover:bg-slate-50 group gap-6 flex-1 border-b">
 										<div class="flex flex-col justify-center items-center">
-											<div class="text-lg font-black text-slate-400">
-												<?= $no_urutan ?>.
+											<div class="text-sm text-slate-400">
+												<?= $pertanyaan_item->dukungan_naik ?>
 											</div>
 										</div>
 										<div>
 											<div class="text-xs text-slate-300">
 												<?= $pertanyaan_item->tanggal ?? "-" ?>
 											</div>
-											<div class="text-lg font-black text-slate-400 group-hover:text-slate-500">
-												<?= $pertanyaan_item->judul_pertanyaan ?>
-											</div>
-											<div class="text-sm text-slate-300">
-												<?= $pertanyaan_item->keterangan ?? "-" ?>
+											<div class="text-sm text-slate-400 group-hover:text-slate-500">
+												<?= $pertanyaan_item->pertanyaan ?>
 											</div>
 										</div>
-										<div class="fill-slate-500 ml-auto">
-											<div class="flex h-full justify-center items-center">
-												<?php
-												if (($_GET['id_pertanyaan'] ?? $pertanyaan->id_pertanyaan) == $pertanyaan_item->id_pertanyaan):
-												?>
-												<svg xmlns="http://www.w3.org/2000/svg" width="1.6rem" height="1.6rem" class="bi bi-pause-circle-fill fill-teal-500" viewBox="0 0 16 16">
-													<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5zm3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5z" />
-												</svg>
-												<?php
-												else:
-													?>
-												<svg xmlns="http://www.w3.org/2000/svg" width="1.6rem" height="1.6rem" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-													<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z" />
-												</svg>
-												<?php
-												endif;
-												?>
+									</div>
+									<ul>
+										<li class="pl-10">
+										<form action="" method="POST">
+											<div class="p-2 flex gap-2">
+												<div class="w-full flex-grow">
+													<input type="hidden" name="id_pertanyaan" value="<?=$pertanyaan_item->id_pertanyaan ?>">
+													<textarea name="balasan" id="" rows="1" class="w-full border rounded-md border-slate-300 p-3" placeholder="Balasan"></textarea>
+												</div>
+												<div>
+													<button class="px-6 py-3 rounded-md border bg-teal-500 text-white border-teal-400 text-sm" type="submit">
+														Kirim
+													</button>
+												</div>
 											</div>
-										</div>
-									</a>
+										</form>
+										</li>
+									</ul>
 								</li>
 							<?php
 						endwhile;
@@ -263,15 +324,18 @@ if($video){
 						?>
 					</ul>
 					<?php 
-						if(isset($_GET['pengguna_aktif'])):
+						if(isset($_SESSION['pengguna_aktif'])):
 					?>
-						<div class="p-6 flex border-t">
-							<div class="">
-								<div class="text-xl font-black text-slate-500">
-									Diskusi
+						<form action="" method="POST">
+							<div class="p-6 border-t flex flex-col">
+								<div class="w-full">
+									<textarea name="pertanyaan" id="" rows="5" class="w-full border rounded-md border-slate-300 p-2"></textarea>
 								</div>
+								<button class="px-6 py-2 rounded-md border bg-teal-500 text-white border-teal-400 ml-auto" type="submit">
+									Kirim
+								</button>
 							</div>
-						</div>
+						</form>
 					<?php 
 						else:
 					?>

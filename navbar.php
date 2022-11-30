@@ -23,15 +23,15 @@
 					Awal
 				</a>
 			</li>
-			<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("perancangan") ?>">
+			<!-- <li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 <?= isNavbar("perancangan") ?>">
 				<a href="./perancangan.php" class="text-sm">
 					Perancangan
 				</a>
-			</li>
+			</li> -->
 			<li class="transition-all duration-75
 							px-4 py-2 rounded-full text-slate-600
 							hover:text-slate-400 <?= isNavbar("kelas") ?>">
-				<a href="./perancangan.php" class="text-sm">
+				<a href="/kelas" class="text-sm">
 					Kelas
 				</a>
 			</li>
@@ -43,6 +43,13 @@
 								hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
 					<a href="/pengguna" class="text-sm">
 						Dasbor
+					</a>
+				</li>
+				<li class="transition-all duration-75 flex-shrink-0
+								px-4 py-2 rounded-full text-slate-600
+								hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
+					<a href="/logout" class="text-sm">
+						Keluar
 					</a>
 				</li>
 			<?php

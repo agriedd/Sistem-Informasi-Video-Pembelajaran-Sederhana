@@ -1,3 +1,28 @@
+<?php
+
+	require_once "../sambungan.php";
+
+	if($_SERVER['REQUEST_METHOD'] == "POST"){
+		$query_validasi_login_pengguna = "SELECT id_pengguna, email FROM pengguna 
+			WHERE email = :email AND kata_sandi = MD5(:kata_sandi) LIMIT 1";
+		$query = $sambungan->prepare($query_validasi_login_pengguna);
+		$hasil = $query->execute($_POST);
+
+		/**
+		 * jika record yang didapat melebihi 0 atau tidak 0
+		 */
+		if($query->rowCount() > 0){
+			$pengguna = $query->fetchObject();
+			$_SESSION['pengguna_aktif'] = $pengguna->id_pengguna;
+			header("location: ../pengguna");
+			exit();
+		} else {
+			header("location: ./index.php?gagal=1");
+			exit();
+		}
+	}
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -64,7 +89,7 @@
 					<?php 
 						endif;
 					?>
-					<form action="">
+					<form action="" method="POST">
 						<div class="p-6">
 							<div class="mb-6">
 								<div class="text-4xl font-black text-slate-500">
@@ -81,10 +106,10 @@
 								<input type="email" id="email" name="email" class="px-3 py-2 border rounded-md w-full" placeholder="Email">
 							</div>
 							<div class="mb-2">
-								<label for="password" class="text-sm text-slate-500">
+								<label for="kata_sandi" class="text-sm text-slate-500">
 									Password
 								</label>
-								<input type="password" id="password" name="password" class="px-3 py-2 border rounded-md w-full" placeholder="Kata Sandi">
+								<input type="password" id="kata_sandi" name="kata_sandi" class="px-3 py-2 border rounded-md w-full" placeholder="Kata Sandi">
 							</div>
 							<div class="mb-2">
 								<div class="text-sm text-slate-400 max-w-sm">

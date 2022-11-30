@@ -97,13 +97,13 @@ $sambungan->query($query_tabel_pertanyaan) && cetak("pertanyaan");
 $query_tabel_balasan = "CREATE TABLE IF NOT EXISTS balasan (
 	id_balasan BIGINT AUTO_INCREMENT,
 	balasan VARCHAR(190) NOT NULL,
-	id_video BIGINT NOT NULL,
+	id_pertanyaan BIGINT NOT NULL,
 	id_pengguna BIGINT NOT NULL,
 	tanggal DATETIME NOT NULL,
 	dukungan_naik BIGINT UNSIGNED NOT NULL,
 	dukungan_turun BIGINT UNSIGNED NOT NULL,
 	PRIMARY KEY (id_balasan),
-	FOREIGN KEY (id_video) REFERENCES video_pembelajaran(id_video)
+	FOREIGN KEY (id_pertanyaan) REFERENCES pertanyaan(id_pertanyaan)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE,
 	FOREIGN KEY (id_pengguna) REFERENCES pengguna(id_pengguna)
