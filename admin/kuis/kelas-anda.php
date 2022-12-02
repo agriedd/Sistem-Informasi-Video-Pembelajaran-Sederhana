@@ -71,6 +71,16 @@ $query->execute([
 							</div>
 						</div>
 					</div>
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-2xl">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+SELECT <code class="text-pink-400">id_kelas</code>, <code class="text-pink-400">nama_kelas</code>, <code class="text-pink-400">deskripsi_singkat</code>, <code class="text-pink-400">latar</code>, <code class="text-pink-400">tanggal</code>, 
+<code class="text-green-400">admin</code>.<code class="text-pink-400">nama</code> as <code class="text-pink-400">nama_pembuat</code> 
+FROM <code class="text-pink-400">kelas</code>
+	LEFT JOIN <code class="text-green-400">admin</code> ON <code class="text-green-400">kelas</code>.<code class="text-pink-400">id_admin</code> = <code class="text-green-400">admin</code>.<code class="text-pink-400">id_admin</code>
+	WHERE <code class="text-green-400">kelas</code>.<code class="text-pink-400">id_admin</code> = <code class="text-blue-400"><?=$_SESSION['admin_aktif'] ?></code>;</pre>
+						</div>
+					</div>
 					<div class="">
 						<ul class="grid grid-cols-1 divide-y divide-solid">
 							<?php

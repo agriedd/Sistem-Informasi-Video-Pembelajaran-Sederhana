@@ -41,7 +41,7 @@
 			<li class="transition-all duration-75 flex-shrink-0
 							px-4 py-2 rounded-full text-slate-600
 							hover:text-slate-400 <?= isNavbar("akun") ?>">
-				<a href="./perancangan.php" class="text-sm">
+				<a href="/admin/akun" class="text-sm">
 					Akun
 				</a>
 			</li>

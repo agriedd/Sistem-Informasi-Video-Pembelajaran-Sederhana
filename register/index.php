@@ -3,36 +3,50 @@
 	require_once "../sambungan.php";
 
 	if($_SERVER['REQUEST_METHOD'] == "POST"){
-		$query_menambah_pengguna = "INSERT INTO pengguna (nama, jenis_kelamin, tanggal_lahir, email, kata_sandi) VALUE (:nama, :jenis_kelamin, :tanggal_lahir, :email, MD5(:kata_sandi))";
-		$query = $sambungan->prepare($query_menambah_pengguna);
-		$hasil = $query->execute($_POST);
 
-		/**
-		 * jika record yang didapat melebihi 0 atau tidak 0
-		 */
-		if($hasil){
-			
-			$query_mengambil_pengguna = "SELECT id_pengguna, email FROM pengguna 
-			WHERE email = :email LIMIT 1";
-			$query = $sambungan->prepare($query_mengambil_pengguna);
-			$hasil = $query->execute([
-				'email' => $_POST['email']
-			]);
+		try {
+
+			$sambungan->query("START TRANSACTION");
+
+			$query_menambah_pengguna = "INSERT INTO pengguna (nama, jenis_kelamin, tanggal_lahir, email, kata_sandi) VALUE (:nama, :jenis_kelamin, :tanggal_lahir, :email, MD5(:kata_sandi))";
+			$query = $sambungan->prepare($query_menambah_pengguna);
+			$hasil = $query->execute($_POST);
 
 			/**
 			 * jika record yang didapat melebihi 0 atau tidak 0
 			 */
-			if($query->rowCount() > 0){
-				$admin = $query->fetchObject();
-				$_SESSION['pengguna_aktif'] = $pengguna->id_pengguna;
-				header("location: ../pengguna");
-				exit();
+			if($hasil){
+				
+				$query_mengambil_pengguna = "SELECT id_pengguna, email FROM pengguna 
+				WHERE email = :email LIMIT 1";
+				$query = $sambungan->prepare($query_mengambil_pengguna);
+				$hasil = $query->execute([
+					'email' => $_POST['email']
+				]);
+
+				/**
+				 * jika record yang didapat melebihi 0 atau tidak 0
+				 */
+				if($query->rowCount() > 0){
+
+					$admin = $query->fetchObject();
+					
+					$_SESSION['pengguna_aktif'] = $pengguna->id_pengguna;
+					$sambungan->query("COMMIT");
+
+					header("location: ../pengguna");
+					exit();
+				} else {
+					throw new Error("gagal menambahkan data!");
+				}
 			} else {
-				header("location: ./index.php?gagal=1");
+				$sambungan->query("ROLLBACK");
+				header("location: ./register?gagal=1");
 				exit();
 			}
-		} else {
-			header("location: ./index.php?gagal=1");
+		} catch (\Throwable $th) {
+			$sambungan->query("ROLLBACK");
+			header("location: ./register?gagal=1");
 			exit();
 		}
 	}
@@ -65,17 +79,6 @@
 			require_once('../navbar.php');
 		?>
 
-		<div class="w-full border-b flex justify-center py-4 bg-pattern">
-			<div class="w-full max-w-sm">
-				<div class="text-2xl p-3 py-0 font-black text-gray-400 font-sans drop-shadow-md tracking-wide">
-					<span class="text-teal-600">V</span>ideo
-					Pembelajaran.
-				</div>
-				<div class="text-gray-400 text-sm px-3">
-					Sistem informasi media pembelajaran gratis berbasis video.
-				</div>
-			</div>
-		</div>
 		<div class="w-full border-b flex justify-center py-4 bg-pattern">
 			<div class="w-full md:max-w-xl max-w-sm">
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
@@ -113,12 +116,25 @@
 								Bergabung dengan kami untuk mendapatkan akses tambahan
 							</div>
 						</div>
+						
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-lg">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+START TRANSACTION;
+INSERT INTO <code class="text-green-400">pengguna</code> 
+  (<code class="text-pink-400">nama</code>, <code class="text-pink-400">jenis_kelamin</code>, <code class="text-pink-400">tanggal_lahir</code>, <code class="text-pink-400">email</code>, <code class="text-pink-400">kata_sandi</code>) 
+  VALUE 
+  (<code class="text-orange-400">'Edd'</code>, <code class="text-orange-400">'l'</code>, <code class="text-orange-400">'2020-01-01'</code>, <code class="text-orange-400">'pengguna@gmail.com'</code>, <code class="text-blue-400">MD5</code>(<code class="text-orange-400">'password'</code>));
+COMMIT;
+</pre>
+						</div>
+					</div>
 						<div class="p-6 grid md:grid-cols-2 grid-cols-1 gap-3">
 							<div class="mb-2">
 								<label for="nama" class="text-sm text-slate-500">
 									Nama
 								</label>
-								<input type="text" id="nama" name="nama" class="px-3 py-2 border rounded-md w-full" placeholder="Nama">
+								<input type="text" id="nama" name="nama" class="px-3 py-2 border rounded-md w-full" placeholder="Nama" value="Edd">
 							</div>
 							<div class="mb-2">
 								<label for="jenis_kelamin" class="text-sm text-slate-500">
@@ -133,7 +149,7 @@
 								<label for="tanggal_lahir" class="text-sm text-slate-500">
 									Tanggal Lahir
 								</label>
-								<input type="date" id="tanggal_lahir" name="tanggal_lahir" class="px-3 py-2 border rounded-md w-full">
+								<input type="date" id="tanggal_lahir" name="tanggal_lahir" class="px-3 py-2 border rounded-md w-full" value="2020-01-01">
 							</div>
 						</div>
 						<div class="px-6 grid md:grid-cols-2 grid-cols-1 gap-3">
@@ -141,13 +157,13 @@
 								<label for="email" class="text-sm text-slate-500">
 									Email
 								</label>
-								<input type="email" id="email" name="email" class="px-3 py-2 border rounded-md w-full" placeholder="Email">
+								<input type="email" id="email" name="email" class="px-3 py-2 border rounded-md w-full" placeholder="Email" value="pengguna@gmail.com">
 							</div>
 							<div class="mb-2">
 								<label for="kata_sandi" class="text-sm text-slate-500">
 									Password
 								</label>
-								<input type="password" id="kata_sandi" name="kata_sandi" class="px-3 py-2 border rounded-md w-full" placeholder="Kata Sandi">
+								<input type="password" id="kata_sandi" name="kata_sandi" class="px-3 py-2 border rounded-md w-full" placeholder="Kata Sandi" value="password">
 							</div>
 						</div>
 						<div class="p-6">

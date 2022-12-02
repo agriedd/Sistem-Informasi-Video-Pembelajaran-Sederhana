@@ -49,18 +49,6 @@
 			$aktif = "masuk-admin";
 			require_once('../../navbar.php');
 		?>
-
-		<div class="w-full border-b flex justify-center py-4 bg-pattern">
-			<div class="w-full max-w-sm">
-				<div class="text-2xl p-3 py-0 font-black text-gray-400 font-sans drop-shadow-md tracking-wide">
-					<span class="text-teal-600">V</span>ideo
-					Pembelajaran.
-				</div>
-				<div class="text-gray-400 text-sm px-3">
-					Sistem informasi media pembelajaran gratis berbasis video.
-				</div>
-			</div>
-		</div>
 		<div class="w-full border-b flex justify-center py-4 bg-pattern">
 			<div class="w-full max-w-sm">
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">

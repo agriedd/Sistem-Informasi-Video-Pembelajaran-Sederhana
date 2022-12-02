@@ -80,6 +80,13 @@ $query->execute([
 							</div>
 						</div>
 					</div>
+					
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-2xl">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+SELECT <code class="text-pink-400">*</code> FROM <code class="text-green-400">kuis</code> WHERE <code class="text-pink-400">id_video</code> = <code class="text-blue-400"><?=$_GET['id_video'] ?></code>;</pre>
+						</div>
+					</div>
 					<?php
 					if ($_GET['sukses'] ?? '0' == 1) :
 					?>
@@ -115,6 +122,15 @@ $query->execute([
 												</div>
 											</div>
 										</a>
+										<div class="">
+											<a href="./hapus-kuis.php?id_kuis=<?=$kuis->id_kuis ?>&id_video=<?=$_GET['id_video'] ?>" title="Hapus" class="flex p-6 bg-red-100 fill-red-600 h-full justify-center items-center
+												hover:fill-white hover:bg-red-600 transition-all
+												border-l border-red-300">
+												<svg xmlns="http://www.w3.org/2000/svg" width="1.2rem" height="1.2rem" class="bi bi-x" viewBox="0 0 16 16">
+													<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+												</svg>
+											</a>
+										</div>
 									</li>
 								<?php
 								endwhile;

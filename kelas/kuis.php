@@ -2,35 +2,14 @@
 
 require_once "../sambungan.php";
 
-$query_mengambil_record_kelas = "SELECT id_kelas, nama_kelas, deskripsi_singkat, keterangan, latar, tanggal FROM kelas WHERE id_kelas = :id_kelas LIMIT 1";
-$query = $sambungan->prepare($query_mengambil_record_kelas);
+$query_mengambil_record_video = "SELECT * FROM video_pembelajaran
+WHERE id_video = :id_video
+ORDER BY urutan ASC, tanggal ASC LIMIT 1";
+$query = $sambungan->prepare($query_mengambil_record_video);
 $query->execute([
-	'id_kelas' => $_GET['id_kelas']
+	'id_video' => $_GET['id_video']
 ]);
-$kelas = $query->fetchObject();
-
-if(isset($_GET['id_video'])){
-	$query_mengambil_record_video = "SELECT * FROM video_pembelajaran
-	WHERE id_kelas = :id_kelas
-	AND id_video = :id_video
-	ORDER BY urutan ASC, tanggal ASC LIMIT 1";
-	$query = $sambungan->prepare($query_mengambil_record_video);
-	$query->execute([
-		'id_kelas' => $_GET['id_kelas'],
-		'id_video' => $_GET['id_video']
-	]);
-	$video = $query->fetchObject();
-} else {
-	$query_mengambil_record_video_pertama = "SELECT * FROM video_pembelajaran
-	WHERE id_kelas = :id_kelas
-	ORDER BY urutan ASC, tanggal ASC LIMIT 1";
-	$query = $sambungan->prepare($query_mengambil_record_video_pertama);
-	$query->execute([
-		'id_kelas' => $_GET['id_kelas']
-	]);
-	$video = $query->fetchObject();
-}
-
+$video = $query->fetchObject();
 
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
@@ -80,22 +59,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 	}
 }
 
-$query_mengambil_record_kelas = "SELECT id_kelas, nama_kelas, deskripsi_singkat, latar, tanggal FROM kelas
-WHERE id_kelas <> :id_kelas
-ORDER BY tanggal DESC";
-$query = $sambungan->prepare($query_mengambil_record_kelas);
-$query->execute([
-	'id_kelas' => $_GET['id_kelas']
-]);
-
-$query_mengambil_record_video = "SELECT id_video, judul_video, keterangan, video, tanggal FROM video_pembelajaran
-WHERE id_kelas = :id_kelas
-ORDER BY urutan ASC, tanggal ASC";
-$query_video = $sambungan->prepare($query_mengambil_record_video);
-$query_video->execute([
-	'id_kelas' => $_GET['id_kelas']
-]);
-
 if($video){
 	$query_mengambil_record_pertanyaan = "SELECT pertanyaan.*, dukungan_naik - dukungan_turun AS poin_dukungan,
 	pengguna.nama 
@@ -139,29 +102,9 @@ if($video){
 		<div class="w-full border-b flex justify-center py-4 bg-pattern gap-4 p-4 flex-wrap lg:flex-wrap-reverse">
 			<div class="w-full max-w-2xl grid lg:grid-cols-1 gap-4">
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
-					<div class="p-6 flex border-b">
-						<div class="">
-							<div class="text-4xl font-black text-slate-500">
-								<?= $kelas->nama_kelas ?>
-							</div>
-							<div class="text-sm text-slate-400 group-hover:text-slate-500 max-w-sm">
-								<?= $kelas->keterangan ?? $kelas->deskripsi_singkat ?>
-							</div>
-						</div>
-					</div>
 					<?php
 						if($video):
 					?>
-					
-					<div class="w-full bg-slate-800">
-						<div class="mx-auto max-w-2xl">
-							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
-SELECT <code class="text-pink-400">*</code> FROM <code class="text-green-400">video_pembelajaran</code>
-	WHERE <code class="text-pink-400">id_kelas</code> = <code class="text-blue-400"><?=$_GET['id_kelas'] ?></code>
-	AND <code class="text-pink-400">id_video</code> = <code class="text-blue-400"><?=$video->id_video ?></code>
-	ORDER BY <code class="text-pink-400">urutan</code> ASC, <code class="text-pink-400">tanggal</code> ASC LIMIT 1;</pre>
-						</div>
-					</div>
 					<div class="p-6 flex border-b">
 						<div class="">
 							<div class="text-3xl font-black text-slate-500 mb-3">
@@ -182,20 +125,6 @@ SELECT <code class="text-pink-400">*</code> FROM <code class="text-green-400">vi
 					?>
 				</div>
 				
-				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
-					<div class="p-6 flex border-b justify-between">
-						<div class="flex items-center justify-center">
-							<div class="text-xl font-black text-slate-500">
-								Kuis
-							</div>
-						</div>
-						<div class="flex items-center justify-center">
-							<a href="/kelas/kuis.php?id_video=<?=$video->id_video ?>" class="px-5 py-2 bg-orange-500 text-white rounded-md shadow-lg shadow-orange-200">
-								Coba Kuis
-							</a>
-						</div>
-					</div>
-				</div>
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
 					<div class="p-6 flex border-b">
 						<div class="">
@@ -302,9 +231,6 @@ WHERE <code class="text-pink-400">id_pertanyaan</code> = <code class="text-blue-
 												endwhile;
 											endif;
 										?>
-										<?php 
-											if(isset($_SESSION['pengguna_aktif'])):
-										?>
 										<li class="ml-10 border-l">
 											
 										<div class="w-full bg-slate-800">
@@ -331,9 +257,6 @@ COMMIT;</pre>
 											</div>
 										</form>
 										</li>
-										<?php
-											endif;
-										?>
 									</ul>
 								</li>
 							<?php
@@ -398,89 +321,6 @@ COMMIT;</pre>
 					<?php 
 						endif;
 					?>
-				</div>
-			</div>
-			<div class="w-full lg:max-w-sm">
-				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
-					<div class="p-6 flex border-b">
-						<div class="">
-							<div class="text-xl font-black text-slate-500">
-								<?= $kelas->nama_kelas ?>
-							</div>
-							<div class="text-sm text-slate-400 group-hover:text-slate-500 max-w-sm">
-								<?= $kelas->keterangan ?? $kelas->deskripsi_singkat ?>
-							</div>
-						</div>
-					</div>
-					<div class="w-full bg-slate-800">
-						<div class="mx-auto max-w-2xl">
-							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
-SELECT <code class="text-pink-400">*</code> FROM <code class="text-green-400">video_pembelajaran</code>
-	WHERE <code class="text-pink-400">id_kelas</code> = <code class="text-blue-400"><?=$_GET['id_kelas'] ?></code>
-	ORDER BY <code class="text-pink-400">urutan</code> ASC, <code class="text-pink-400">tanggal</code> ASC;</pre>
-						</div>
-					</div>
-					<ul class="grid grid-cols-1 divide-y divide-solid">
-						<?php
-						if ($query_video->rowCount()) :
-							$no_urutan = 0;
-							while ($video_item = $query_video->fetchObject()) :
-								$no_urutan++;
-						?>
-								<li class="flex">
-									<a href="?id_kelas=<?= $_GET['id_kelas'] ?>&id_video=<?= $video_item->id_video ?>" class="p-3 flex h-full <?=($_GET['id_video'] ?? $video->id_video) != $video_item->id_video ? 'hover:bg-slate-50' : 'bg-teal-50 hover:bg-teal-100' ?> group gap-6 flex-1">
-										<div class="flex flex-col justify-center items-center">
-											<div class="text-lg font-black text-slate-400">
-												<?= $no_urutan ?>.
-											</div>
-										</div>
-										<div>
-											<div class="text-xs text-slate-300">
-												<?= $video_item->tanggal ?? "-" ?>
-											</div>
-											<div class="text-lg font-black text-slate-400 group-hover:text-slate-500">
-												<?= $video_item->judul_video ?>
-											</div>
-											<div class="text-sm text-slate-300">
-												<?= $video_item->keterangan ?? "-" ?>
-											</div>
-										</div>
-										<div class="fill-slate-500 ml-auto">
-											<div class="flex h-full justify-center items-center">
-												<?php
-												if (($_GET['id_video'] ?? $video->id_video) == $video_item->id_video):
-												?>
-												<svg xmlns="http://www.w3.org/2000/svg" width="1.6rem" height="1.6rem" class="bi bi-pause-circle-fill fill-teal-500" viewBox="0 0 16 16">
-													<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5zm3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5z" />
-												</svg>
-												<?php
-												else:
-													?>
-												<svg xmlns="http://www.w3.org/2000/svg" width="1.6rem" height="1.6rem" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-													<path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814l-3.5-2.5z" />
-												</svg>
-												<?php
-												endif;
-												?>
-											</div>
-										</div>
-									</a>
-								</li>
-							<?php
-						endwhile;
-					else :
-							?>
-							<li class="">
-								<div class="p-6 flex h-full justify-between gap-4 w-full">
-									<div class="text-xl font-bold text-slate-400">
-										Video kosong
-									</div>
-								</div>
-							</li>
-						<?php
-					endif;
-						?>
-					</ul>
 				</div>
 			</div>
 		</div>

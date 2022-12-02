@@ -7,27 +7,38 @@ if(!($_SESSION['admin_aktif'] ?? false)){
 	exit();
 }
 
+$query_mengambil_record_video = "SELECT id_video, judul_video, keterangan, video, id_kelas, tanggal FROM video_pembelajaran WHERE id_video = :id_video LIMIT 1";
+$query = $sambungan->prepare($query_mengambil_record_video);
+$query->execute([
+	'id_video' => $_GET['id_video']
+]);
+$video = $query->fetchObject();
+
+$query_mengambil_record_kelas = "SELECT id_kelas, nama_kelas, deskripsi_singkat, latar, tanggal FROM kelas WHERE id_kelas = :id_kelas LIMIT 1";
+$query = $sambungan->prepare($query_mengambil_record_kelas);
+$query->execute([
+	'id_kelas' => $_GET['id_kelas']
+]);
+$kelas = $query->fetchObject();
+
 if($_SERVER['REQUEST_METHOD'] == "POST"){
 	$sambungan->query("START TRANSACTION");
 	
 	try {
-		$hasil = move_uploaded_file($_FILES['latar_kelas']['tmp_name'], "../../img/kelas/".$_FILES['latar_kelas']['name']);
-		if(!$hasil) throw new Error("Gagal mengupload berkas!");
-		$latar_kelas = "/img/kelas/".$_FILES['latar_kelas']['name'];
-		$query_tambah_kelas = "INSERT INTO kelas (nama_kelas, deskripsi_singkat, keterangan, id_admin, tanggal, latar) VALUE (:nama_kelas, :deskripsi_singkat, :keterangan, :id_admin, NOW(), :latar)";
-		$query = $sambungan->prepare($query_tambah_kelas);
+		
+		$query_ubah_video = "UPDATE video_pembelajaran SET judul_video=:judul_video, video=:video, keterangan=:keterangan WHERE id_video=:id_video LIMIT 1";
+		$query = $sambungan->prepare($query_ubah_video);
 		$hasil = $query->execute([
 			...$_POST,
-			'id_admin' => $_SESSION['admin_aktif'],
-			'latar' => $latar_kelas
+			'id_video' => $video->id_video,
 		]);
 		if(!$hasil) throw new Error("Gagal menambahkan data!");
 		$sambungan->query("COMMIT");
-		header("location: ./index.php?sukses=1");
+		header("location: ./info-video.php?id_video={$video->id_video}&sukses=1");
 		exit();
 	} catch (\Throwable $th) {
 		$sambungan->query("ROLLBACK");
-		header("location: ./tambah-kelas.php?gagal=1&pesan={$th->getMessage()}");
+		header("location: ./ubah-video.php?id_kelas={$kelas->id_kelas}&id_video={$video->id_video}&gagal=1&pesan={$th->getMessage()}");
 		exit();
 	}
 }
@@ -66,10 +77,10 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 					<div class="p-6 flex border-b justify-between flex-wrap gap-4">
 						<div class="">
 							<div class="text-4xl font-black text-slate-500">
-								Tambah Kelas
+								Ubah Video
 							</div>
 							<div class="text-sm text-slate-400 group-hover:text-slate-500 max-w-sm">
-								Tambah data kelas baru
+								ubah data video
 							</div>
 						</div>
 					</div>
@@ -77,23 +88,12 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 						<div class="mx-auto max-w-2xl">
 							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
 START TRANSACTION;
-INSERT INTO <code class="text-green-400">kelas</code> (
-	<code class="text-pink-400">nama_kelas</code>, 
-	<code class="text-pink-400">deskripsi_singkat</code>, 
-	<code class="text-pink-400">keterangan</code>, 
-	<code class="text-pink-400">id_admin</code>, 
-	<code class="text-pink-400">tanggal</code>, 
-	<code class="text-pink-400">latar</code>
-  ) 
-  VALUE (
-	<code class="text-orange-400">'Fotografi dengan smartphone'</code>, 
-	<code class="text-orange-400">'Belajar skill fotografi dengan smartphone'</code>, 
-	<code class="text-orange-400">''</code>, 
-	<code class="text-blue-400"><?=$_SESSION['admin_aktif'] ?></code>, 
-	<code class="text-blue-400">NOW()</code>, 
-	<code class="text-orange-400">'/gambar.jpg'</code>
-  );
-COMMIT</pre>
+UPDATE <code class="text-green-400">video_pembelajaran</code> SET 
+<code class="text-pink-400">judul_video</code>=<code class="text-orange-400">'<?=$video->judul_video ?>'</code>, 
+<code class="text-pink-400">video</code>=<code class="text-orange-400">'<?=$video->video ?>'</code>, 
+<code class="text-pink-400">keterangan</code>=<code class="text-orange-400">'<?=$video->keterangan ?>'</code>
+WHERE <code class="text-pink-400">id_video</code>=<code class="text-blue-400"><?=$video->id_video ?></code> LIMIT 1;
+COMMIT;</pre>
 						</div>
 					</div>
 					<?php 
@@ -108,32 +108,26 @@ COMMIT</pre>
 					<form action="" method="POST" enctype="multipart/form-data">
 						<div class="p-6">
 							<div class="mb-2">
-								<label for="nama_kelas" class="text-sm text-slate-500">
-									Nama Kelas
+								<label for="judul_video" class="text-sm text-slate-500">
+									Judul Video
 								</label>
-								<input type="text" id="nama_kelas" name="nama_kelas" class="px-3 py-2 border rounded-md w-full" placeholder="Nama Kelas" value="Fotografi dengan smartphone">
+								<input type="text" id="judul_video" name="judul_video" class="px-3 py-2 border rounded-md w-full" placeholder="Nama Kelas" value="<?=$video->judul_video ?>">
 							</div>
 							<div class="mb-2">
-								<label for="latar_kelas" class="text-sm text-slate-500">
-									Gambar Latar Kelas
+								<label for="video" class="text-sm text-slate-500">
+									Link Video Youtube
 								</label>
-								<input type="file" accept="image/*" id="latar_kelas" name="latar_kelas" class="px-3 py-2 border rounded-md w-full" placeholder="Latar Kelas">
-							</div>
-							<div class="mb-2">
-								<label for="deskripsi_singkat" class="text-sm text-slate-500">
-									Deskripsi Singkat
-								</label>
-								<input type="text" id="deskripsi_singkat" name="deskripsi_singkat" class="px-3 py-2 border rounded-md w-full" placeholder="Deskripsi Singkat" value="Belajar skill fotografi dengan smartphone">
+								<input type="text" id="video" name="video" class="px-3 py-2 border rounded-md w-full" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" value="<?=$video->video ?>">
 							</div>
 							<div class="mb-2">
 								<label for="keterangan" class="text-sm text-slate-500">
-									Keterangan panjang
+									Keterangan
 								</label>
-								<textarea type="text" id="keterangan" name="keterangan" rows="5" class="px-3 py-2 border rounded-md w-full" placeholder="Keterangan Kelas"></textarea>
+								<textarea type="text" id="keterangan" name="keterangan" rows="5" class="px-3 py-2 border rounded-md w-full" placeholder="Keterangan Kelas Video"><?=$video->keterangan ?></textarea>
 							</div>
 							<div class="pt-6">
 								<button class="px-6 py-2 rounded-md border bg-teal-500 text-white border-teal-400" type="submit">
-									Tambah
+									Simpan
 								</button>
 							</div>
 						</div>

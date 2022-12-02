@@ -86,6 +86,15 @@ $query->execute([
 							</div>
 						</div>
 					</div>
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-2xl">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+SELECT <code class="text-pink-400">id_video</code>, <code class="text-pink-400">judul_video</code>, <code class="text-pink-400">keterangan</code>, <code class="text-pink-400">video</code>, <code class="text-pink-400">tanggal</code> 
+	FROM <code class="text-green-400">video_pembelajaran</code>
+	WHERE <code class="text-pink-400">id_kelas</code> = <code class="text-blue-400"><?=$_GET['id_kelas'] ?></code>
+	ORDER BY <code class="text-pink-400">urutan</code> ASC, <code class="text-pink-400">tanggal</code> ASC;</pre>
+						</div>
+					</div>
 					<?php
 					if ($_GET['sukses'] ?? '0' == 1) :
 					?>

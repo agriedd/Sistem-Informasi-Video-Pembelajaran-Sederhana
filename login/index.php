@@ -17,7 +17,7 @@
 			header("location: ../pengguna");
 			exit();
 		} else {
-			header("location: ./index.php?gagal=1");
+			header("location: ./login?gagal=1");
 			exit();
 		}
 	}
@@ -49,18 +49,6 @@
 			$aktif = "masuk";
 			require_once('../navbar.php');
 		?>
-
-		<div class="w-full border-b flex justify-center py-4 bg-pattern">
-			<div class="w-full max-w-sm">
-				<div class="text-2xl p-3 py-0 font-black text-gray-400 font-sans drop-shadow-md tracking-wide">
-					<span class="text-teal-600">V</span>ideo
-					Pembelajaran.
-				</div>
-				<div class="text-gray-400 text-sm px-3">
-					Sistem informasi media pembelajaran gratis berbasis video.
-				</div>
-			</div>
-		</div>
 		<div class="w-full border-b flex justify-center py-4 bg-pattern">
 			<div class="w-full max-w-sm">
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
@@ -78,6 +66,14 @@
 									</a>
 								</li>
 							</ul>
+						</div>
+					</div>
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-lg">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+SELECT <code class="text-pink-400">id_pengguna</code>, <code class="text-pink-400">email</code> FROM <code class="text-green-400">pengguna</code> 
+WHERE <code class="text-pink-400">email</code> = <code class="text-orange-400">'pengguna@gmail.com'</code> 
+AND <code class="text-pink-400">kata_sandi</code> = <code class="text-blue-400">MD5</code>(<code class="text-orange-400">'password'</code>) LIMIT 1;</pre>
 						</div>
 					</div>
 					<?php 

@@ -30,6 +30,7 @@ $query->execute([]);
 	<div class="grid grid-cols-1 justify-items-center gap-4">
 
 		<?php 
+			$aktif = "kelas";
 			require_once('../navbar.php');
 		?>
 		<div class="w-full flex flex-col justify-center items-center">
@@ -38,7 +39,16 @@ $query->execute([]);
 					Daftar Kelas
 				</div>
 				<div class="text-sm text-gray-400 w-full">
-					Daftar kelas pilihan
+					Daftar kelas
+				</div>
+			</div>
+			
+			<div class="w-full bg-slate-800">
+				<div class="mx-auto max-w-lg">
+					<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+SELECT <code class="text-pink-400">id_kelas</code>, <code class="text-pink-400">nama_kelas</code>, <code class="text-pink-400">deskripsi_singkat</code>, <code class="text-pink-400">latar</code>, <code class="text-pink-400">tanggal</code> 
+	FROM <code class="text-green-400">kelas</code> 
+	ORDER BY <code class="text-pink-400">tanggal</code> DESC;</pre>
 				</div>
 			</div>
 			<div class="flex flex-wrap gap-4 w-full p-4 justify-center">

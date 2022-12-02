@@ -96,6 +96,23 @@ $jumlah = $_GET['jumlah'] ?? 1;
 							</div>
 						</div>
 					</div>
+					<div class="w-full bg-slate-800">
+						<div class="mx-auto max-w-2xl">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+START TRANSACTION;
+INSERT INTO <code class="text-green-400">kuis</code> (
+		<code class="text-pink-400">pertanyaan_kuis</code>, <code class="text-pink-400">id_video</code>, <code class="text-pink-400">tanggal</code>
+	) VALUE (
+		<code class="text-orange-400">'berapa nilai dari 1+1?'</code>, <code class="text-blue-400"><?=$_GET['id_video'] ?></code>, <code class="text-blue-400">NOW()</code>
+	);
+SELECT <code class="text-blue-400">LAST_INSERT_ID()</code> as <code class="text-pink-400">id_kuis</code>;
+INSERT INTO <code class="text-green-400">opsi_jawaban</code> (<code class="text-pink-400">jawaban</code>, <code class="text-pink-400">status_benar</code>, <code class="text-pink-400">id_kuis</code>) VALUE (<code class="text-orange-400">'1'</code>, <code class="text-orange-400">'salah'</code>, <code class="text-blue-400">1</code>);
+INSERT INTO <code class="text-green-400">opsi_jawaban</code> (<code class="text-pink-400">jawaban</code>, <code class="text-pink-400">status_benar</code>, <code class="text-pink-400">id_kuis</code>) VALUE (<code class="text-orange-400">'2'</code>, <code class="text-orange-400">'benar'</code>, <code class="text-blue-400">1</code>);
+INSERT INTO <code class="text-green-400">opsi_jawaban</code> (<code class="text-pink-400">jawaban</code>, <code class="text-pink-400">status_benar</code>, <code class="text-pink-400">id_kuis</code>) VALUE (<code class="text-orange-400">'3'</code>, <code class="text-orange-400">'salah'</code>, <code class="text-blue-400">1</code>);
+INSERT INTO <code class="text-green-400">opsi_jawaban</code> (<code class="text-pink-400">jawaban</code>, <code class="text-pink-400">status_benar</code>, <code class="text-pink-400">id_kuis</code>) VALUE (<code class="text-orange-400">'4'</code>, <code class="text-orange-400">'salah'</code>, <code class="text-blue-400">1</code>);
+COMMIT;</pre>
+						</div>
+					</div>
 					<?php 
 						if($_GET['gagal'] ?? '0' == 1):
 					?>
