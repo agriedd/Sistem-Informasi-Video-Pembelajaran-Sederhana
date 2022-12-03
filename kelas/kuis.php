@@ -2,6 +2,11 @@
 
 require_once "../sambungan.php";
 
+if (!($_SESSION['admin_aktif'] ?? false)) {
+	header("Location: ../login");
+	exit();
+}
+
 $query_mengambil_record_video = "SELECT * FROM video_pembelajaran
 WHERE id_video = :id_video
 ORDER BY urutan ASC, tanggal ASC LIMIT 1";
@@ -13,61 +18,86 @@ $video = $query->fetchObject();
 
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
-	if(isset($_POST['id_pertanyaan'])){
-		/**
-		 * balasan
-		 * 
-		 */
-		$sambungan->query("START TRANSACTION");
-		try {
-			$query_tambah_kelas = "INSERT INTO balasan (balasan, id_pertanyaan, id_pengguna, tanggal, dukungan_naik, dukungan_turun) VALUE (:balasan, :id_pertanyaan, :id_pengguna, NOW(), 0, 0)";
-			$query = $sambungan->prepare($query_tambah_kelas);
-			$hasil = $query->execute([
-				...$_POST,
-				'id_pengguna' => $_SESSION['pengguna_aktif']
-			]);
-			if(!$hasil) throw new Error("Gagal menambahkan pertanyaan!");
-			$sambungan->query("COMMIT");
-			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$video->id_video}&sukses=1");
-			exit();
-		} catch (\Throwable $th) {
-			$sambungan->query("ROLLBACK");
-			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$video->id_video}&gagal=1&pesan={$th->getMessage()}");
-			exit();
-		}
-	} else {
-		$sambungan->query("START TRANSACTION");
+
+
+	$sambungan->query("START TRANSACTION");
+	
+	try {
+
+		$query_mengambil_record_kuis = "SELECT *
+			FROM kuis
+			WHERE id_video = :id_video";
+		$query_kuis = $sambungan->prepare($query_mengambil_record_kuis);
+		$query_kuis->execute([
+			'id_video' => $video->id_video
+		]);
 		
-		try {
-			$query_tambah_kelas = "INSERT INTO pertanyaan (pertanyaan, id_video, id_pengguna, tanggal, dukungan_naik, dukungan_turun) VALUE (:pertanyaan, :id_video, :id_pengguna, NOW(), 0, 0)";
-			$query = $sambungan->prepare($query_tambah_kelas);
-			$hasil = $query->execute([
-				...$_POST,
-				'id_video' => $video->id_video,
-				'id_pengguna' => $_SESSION['pengguna_aktif']
+
+		$benar = [];
+		$pertanyaan = [];
+
+		while($kuis = $query_kuis->fetchObject()){
+			
+			$pertanyaan[] = $kuis;
+
+			$list_jawaban = $_POST["{$kuis->id_kuis}"] ?? [];
+	
+			$query_mengambil_record_jawaban = "SELECT id_opsi_jawaban, status_benar
+				FROM opsi_jawaban
+				WHERE id_kuis = :id_kuis AND
+				status_benar = 'benar'";
+			$query_opsi = $sambungan->prepare($query_mengambil_record_jawaban);
+			
+			$query_opsi->execute([
+				'id_kuis' => $kuis->id_kuis
 			]);
-			if(!$hasil) throw new Error("Gagal menambahkan pertanyaan!");
-			$sambungan->query("COMMIT");
-			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$video->id_video}&sukses=1");
-			exit();
-		} catch (\Throwable $th) {
-			$sambungan->query("ROLLBACK");
-			header("location: ./info-kelas.php?id_kelas={$_GET['id_kelas']}&id_video={$video->id_video}&gagal=1&pesan={$th->getMessage()}");
-			exit();
+			$jawaban_benar = [];
+			while($opsi_benar = $query_opsi->fetchObject()){
+				$jawaban_benar[] = $opsi_benar->id_opsi_jawaban;
+			}
+			if($query_opsi->rowCount() == count($list_jawaban) && array_diff($list_jawaban, $jawaban_benar) == array_diff($jawaban_benar, $list_jawaban)){
+				$benar[] = true;
+			}
 		}
 		
+		$skor = (count($benar)/count($pertanyaan)) * 100;
+
+		$query_tambah_kuis = "INSERT INTO kuis_pengguna (id_video, id_pengguna, tanggal, skor) VALUE (:id_video, :id_pengguna, NOW(), :skor)";
+		$query = $sambungan->prepare($query_tambah_kuis);
+		$hasil = $query->execute([
+			'id_video' => $video->id_video,
+			'id_pengguna' => $_SESSION['pengguna_aktif'],
+			'skor' => $skor
+		]);
+		if(!$hasil) throw new Error("Gagal menambahkan pertanyaan!");
+		$sambungan->query("COMMIT");
+		header("location: ./kuis.php?id_video={$_GET['id_video']}&sukses=1");
+		exit();
+	} catch (\Throwable $th) {
+		$sambungan->query("ROLLBACK");
+		header("location: ./kuis.php?id_video={$_GET['id_video']}&gagal=1&pesan={$th->getMessage()}");
+		exit();
 	}
+		
 }
 
 if($video){
-	$query_mengambil_record_pertanyaan = "SELECT pertanyaan.*, dukungan_naik - dukungan_turun AS poin_dukungan,
-	pengguna.nama 
-	FROM pertanyaan
-	LEFT JOIN pengguna ON pengguna.id_pengguna = pertanyaan.id_pengguna
-	WHERE id_video = :id_video";
-	$query_pertanyaan = $sambungan->prepare($query_mengambil_record_pertanyaan);
-	$query_pertanyaan->execute([
+	$query_mengambil_record_kuis = "SELECT *
+	FROM kuis
+	WHERE id_video = :id_video
+	ORDER BY RAND()";
+	$query_kuis = $sambungan->prepare($query_mengambil_record_kuis);
+	$query_kuis->execute([
 		'id_video' => $video->id_video
+	]);
+	$query_mengambil_record_skor_kuis_tertinggi = "SELECT *
+	FROM kuis_pengguna
+	WHERE id_video = :id_video AND id_pengguna = :id_pengguna
+	ORDER BY skor DESC, tanggal DESC LIMIT 3";
+	$query_kuis_pengguna = $sambungan->prepare($query_mengambil_record_skor_kuis_tertinggi);
+	$query_kuis_pengguna->execute([
+		'id_video' => $video->id_video,
+		'id_pengguna' => $_SESSION['pengguna_aktif'],
 	]);
 }
 
@@ -105,220 +135,159 @@ if($video){
 					<?php
 						if($video):
 					?>
-					<div class="p-6 flex border-b">
+					<div class="p-6 flex gap-3">
 						<div class="">
 							<div class="text-3xl font-black text-slate-500 mb-3">
-								<?= $video->judul_video ?>
+								[Kuis] <?= $video->judul_video ?>
 							</div>
 							<div class="text-slate-500 group-hover:text-slate-500 max-w-sm">
 								<?= $video->keterangan ?>
 							</div>
 						</div>
-					</div>
-					<div class="flex justify-center">
 						<div>
-							<iframe width="560" height="315" src="https://www.youtube.com/embed/<?= preg_replace("/^([^v]+v=)([^&]+)(&?.*)$/i", "$2", $video->video) ?>" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-						</div>
-					</div>
-					<?php
-						endif;
-					?>
-				</div>
-				
-				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
-					<div class="p-6 flex border-b">
-						<div class="">
-							<div class="text-xl font-black text-slate-500">
-								Diskusi
+							<div class="p-1 rounded-full bg-slate-100">
+								<ul class="flex gap-1">
+
+									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400">
+										<a href="/kelas/info-kelas.php?id_kelas=<?= $video->id_kelas ?>&id_video=<?= $video->id_video ?>" class="text-sm">
+											Kembali
+										</a>
+									</li>
+								</ul>
 							</div>
 						</div>
 					</div>
-					<?php
-						if ($_GET['sukses'] ?? '0' == 1) :
-					?>
-						<div class="p-6 bg-teal-50 text-teal-600 text-sm border-b border-teal-200">
-							Berhasil menambahkan sebuah data baru!
-						</div>
-					<?php
-						endif;
-					?>
-					<?php 
-						if($_GET['gagal'] ?? '0' == 1):
-					?>
-					<div class="p-6 bg-red-50 text-red-600 text-sm border-b border-red-200">
-						terjadi kesalahan ketika menambahkan data, coba lagi!
-					</div>
-					<?php 
-						endif;
-					?>
-					
 					<div class="w-full bg-slate-800">
 						<div class="mx-auto max-w-2xl">
 							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
-SELECT <code class="text-green-400">pertanyaan</code>.<code class="text-pink-400">*</code>, <code class="text-pink-400">dukungan_naik</code> - <code class="text-pink-400">dukungan_turun</code> AS <code class="text-pink-400">poin_dukungan</code>,
-	<code class="text-green-400">pengguna</code>.<code class="text-pink-400">nama</code> 
-	FROM <code class="text-green-400">pertanyaan</code>
-	LEFT JOIN <code class="text-green-400">pengguna</code> ON <code class="text-green-400">pengguna</code>.<code class="text-pink-400">id_pengguna</code> = <code class="text-green-400">pertanyaan</code>.<code class="text-pink-400">id_pengguna</code>
-	WHERE <code class="text-pink-400">id_video</code> = <code class="text-blue-400"><?=$video->id_video ?></code>;</pre>
+SELECT <code class="text-pink-400">*</code>
+	FROM <code class="text-green-400">kuis_pengguna</code>
+	WHERE <code class="text-pink-400">id_video</code> = <code class="text-blue-400"><?=$_GET['id_video'] ?></code> AND <code class="text-pink-400">id_pengguna</code> = <code class="text-blue-400"><?=$_SESSION['pengguna_aktif'] ?></code>
+	ORDER BY <code class="text-pink-400">skor</code> DESC, <code class="text-pink-400">tanggal</code> DESC LIMIT 3;</pre>
 						</div>
 					</div>
-					<ul class="grid grid-cols-1 divide-y divide-solid">
-						<?php
-						if ($video && $query_pertanyaan->rowCount()) :
-							while ($pertanyaan_item = $query_pertanyaan->fetchObject()) :
-						?>
-								<li class="flex flex-col">
-									<div class="p-3 flex h-full hover:bg-slate-50 group gap-6 flex-1 border-b">
-										<div class="flex flex-col justify-center items-center">
-											<div class="text-sm text-slate-400">
-												<?= $pertanyaan_item->poin_dukungan ?>
-											</div>
-										</div>
-										<div>
-											<div class="text-xs text-slate-300">
-												<?= $pertanyaan_item->tanggal ?? "-" ?> -
-												<?= $pertanyaan_item->nama ?? "Tanpa nama" ?>
-											</div>
-											<div class="text-sm text-slate-400 group-hover:text-slate-500">
-												<?= $pertanyaan_item->pertanyaan ?>
-											</div>
-										</div>
-									</div>
-									
-									<div class="w-full bg-slate-800">
-										<div class="mx-auto">
-											<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
-SELECT <code class="text-green-400">balasan</code>.<code class="text-pink-400">*</code>, <code class="text-pink-400">dukungan_naik</code> - <code class="text-pink-400">dukungan_turun</code> AS <code class="text-pink-400">poin_dukungan</code>,
-<code class="text-green-400">pengguna</code>.<code class="text-pink-400">nama</code> FROM <code class="text-green-400">balasan</code>
-LEFT JOIN <code class="text-green-400">pengguna</code> ON <code class="text-green-400">pengguna</code>.<code class="text-pink-400">id_pengguna</code> = <code class="text-green-400">balasan</code>.<code class="text-pink-400">id_pengguna</code>
-WHERE <code class="text-pink-400">id_pertanyaan</code> = <code class="text-blue-400"><?=$pertanyaan_item->id_pertanyaan ?></code>;</pre>
-										</div>
-									</div>
-									<ul>
-										<?php
-											$query_mengambil_record_balasan = "SELECT balasan.*, dukungan_naik - dukungan_turun AS poin_dukungan,
-											pengguna.nama 
-											FROM balasan
-											LEFT JOIN pengguna ON pengguna.id_pengguna = balasan.id_pengguna
-											WHERE id_pertanyaan = :id_pertanyaan";
-											$query_balasan = $sambungan->prepare($query_mengambil_record_balasan);
-											$query_balasan->execute([
-												'id_pertanyaan' => $pertanyaan_item->id_pertanyaan
-											]);
-											$once = false;
-											if ($query_balasan->rowCount()) :
-												while ($balasan_item = $query_balasan->fetchObject()) :
-											?>
-										<li class="flex flex-col ml-10 border-l">
-											<div class="p-3 flex h-full hover:bg-slate-50 group gap-6 flex-1 border-b">
-												<div class="flex flex-col justify-center items-center">
-													<div class="text-sm text-slate-400">
-														<?= $balasan_item->poin_dukungan ?>
-													</div>
-												</div>
-												<div>
-													<div class="text-xs text-slate-300">
-														<?= $balasan_item->tanggal ?? "-" ?> -
-														<?= $balasan_item->nama ?? "Tanpa nama" ?>
-													</div>
-													<div class="text-sm text-slate-400 group-hover:text-slate-500">
-														<?= $balasan_item->balasan ?>
-													</div>
-												</div>
-											</div>
-										</li>
-										<?php
-												endwhile;
-											endif;
-										?>
-										<li class="ml-10 border-l">
-											
-										<div class="w-full bg-slate-800">
-											<div class="mx-auto max-w-2xl">
-												<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
+					<div class="mb-6">
+						<table class="border-collapse w-full">
+							<thead>
+								<tr class="bg-slate-100">
+									<td class="p-2 text-sm text-slate-800 border">
+										No.
+									</td>
+									<td class="p-2 text-sm text-slate-800 border">
+										Skor
+									</td>
+									<td class="p-2 text-sm text-slate-800 border">
+										Tanggal
+									</td>
+								</tr>
+							</thead>
+							<tbody>
+								<?php
+									if ($video && $query_kuis_pengguna->rowCount()) :
+										$no = 0;
+										while ($kuis_item = $query_kuis_pengguna->fetchObject()) :
+											$no++;
+								?>
+								<tr>
+									<td class="p-2 text-sm text-slate-800 border">
+										<?= $no ?>.
+									</td>
+									<td class="p-2 text-sm text-slate-800 border">
+										<?= $kuis_item->skor ?>
+									</td>
+									<td class="p-2 text-sm text-slate-800 border">
+										<?= $kuis_item->tanggal ?>
+									</td>
+								</tr>
+								<?php
+										endwhile;
+									else:
+								?>
+								<?php
+									endif;
+								?>
+							</tbody>
+						</table>
+					</div>
+					<div class="flex justify-center">
+						<form action="" method="POST" enctype="multipart/form-data" class="w-full">
+							<table class="border-collapse w-full">
+								<tbody>
+									<?php
+										if ($video && $query_kuis->rowCount()) :
+											$no = 0;
+											while ($kuis_item = $query_kuis->fetchObject()) :
+												$no++;
+												$query_mengambil_record_opsi = "SELECT *
+												FROM opsi_jawaban
+												WHERE id_kuis = :id_kuis
+												ORDER BY RAND()";
+												$query_opsi = $sambungan->prepare($query_mengambil_record_opsi);
+												$query_opsi->execute([
+													'id_kuis' => $kuis_item->id_kuis
+												]);
+									?>
+									<tr>
+										<td class="p-2 text-sm text-slate-800 border">
+											<?= $no ?>.
+										</td>
+										<td colspan="3" class="p-2 text-sm text-slate-800 border">
+											<?= $kuis_item->pertanyaan_kuis ?>
+										</td>
+									</tr>
+									<?php
+												if ($query_opsi->rowCount()) :
+													$opsi_no = 96;
+													while ($opsi = $query_opsi->fetchObject()) :
+														$opsi_no++;
+									?>
+													<tr>
+														<td class="p-2 text-sm text-slate-800 border">
+														</td>
+														<td class="p-2 text-sm text-slate-800 border">
+															<div class="h-full flex justify-center items-center">
+																<input type="checkbox" id="<?=$kuis_item->id_kuis ?>" name="<?=$kuis_item->id_kuis ?>[]" class="accent-blue-500 h-4 w-4 cursor-pointer" value="<?=$opsi->id_opsi_jawaban ?>">
+															</div>
+														</td>
+														<td class="p-2 text-sm text-slate-800 border" colspan="2">
+															<?= chr($opsi_no) ?>.
+															<?= $opsi->jawaban ?>
+														</td>
+													</tr>
+									<?php
+													endwhile;
+												endif;
+											endwhile;
+										else:
+									?>
+									<tr>
+										<td class="p-2 text-sm text-slate-800 border">
+											Tidak ada kuis
+										</td>
+									</tr>
+									<?php
+										endif;
+									?>
+								</tbody>
+							</table>
+							<div class="w-full bg-slate-800">
+								<div class="mx-auto max-w-2xl">
+							<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
 START TRANSACTION;
-INSERT INTO <code class="text-green-400">balasan</code> (
-	<code class="text-pink-400">balasan</code>, <code class="text-pink-400">id_pertanyaan</code>, <code class="text-pink-400">id_pengguna</code>, <code class="text-pink-400">tanggal</code>, <code class="text-pink-400">dukungan_naik</code>, <code class="text-pink-400">dukungan_turun</code>
-	) VALUE (<code class="text-orange-400">'hi!'</code>, <code class="text-blue-400"><?=$pertanyaan_item->id_pertanyaan ?></code>, <code class="text-blue-400"><?=$_SESSION['pengguna_aktif'] ?></code>, <code class="text-blue-400">NOW()</code>, <code class="text-blue-400">0</code>, <code class="text-blue-400">0</code>);
+INSERT INTO <code class="text-green-400">kuis_pengguna</code> 
+	(<code class="text-pink-400">id_video</code>, <code class="text-pink-400">id_pengguna</code>, <code class="text-pink-400">tanggal</code>, <code class="text-pink-400">skor</code>) 
+	VALUE (<code class="text-blue-400"><?=$_GET['id_video'] ?></code>, <code class="text-pink-400"><?=$_SESSION['pengguna_aktif'] ?></code>, <code class="text-blue-400">NOW</code>(), <code class="text-blue-400">100.00</code>);
 COMMIT;</pre>
-											</div>
-										</div>
-										<form action="" method="POST">
-											<div class="p-2 flex gap-2">
-												<div class="w-full flex-grow">
-													<input type="hidden" name="id_pertanyaan" value="<?=$pertanyaan_item->id_pertanyaan ?>">
-													<textarea name="balasan" id="" rows="1" class="w-full border rounded-md border-slate-300 p-3" placeholder="Balasan"></textarea>
-												</div>
-												<div>
-													<button class="px-6 py-3 rounded-md border bg-teal-500 text-white border-teal-400 text-sm" type="submit">
-														Kirim
-													</button>
-												</div>
-											</div>
-										</form>
-										</li>
-									</ul>
-								</li>
-							<?php
-						endwhile;
-					else :
-							?>
-							<li class="">
-								<div class="p-6 flex h-full justify-between gap-4 w-full">
-									<div class="text-sm text-center w-full text-slate-400">
-										jadi yang pertama membuka diskusi
-									</div>
 								</div>
-							</li>
-						<?php
-					endif;
-						?>
-					</ul>
-					<?php 
-						if(isset($_SESSION['pengguna_aktif'])):
-					?>
-						<div class="w-full bg-slate-800">
-							<div class="mx-auto max-w-2xl">
-								<pre class="text-slate-200 bg-slate-800 rounded-md p-3 text-sm font-mono">
-START TRANSACTION;
-INSERT INTO <code class="text-green-400">pertanyaan</code> (
-	<code class="text-pink-400">pertanyaan</code>, <code class="text-pink-400">id_video</code>, <code class="text-pink-400">id_pengguna</code>, <code class="text-pink-400">tanggal</code>, <code class="text-pink-400">dukungan_naik</code>, <code class="text-pink-400">dukungan_turun</code>
-	) VALUE (<code class="text-orange-400">'hello world!'</code>, <code class="text-blue-400"><?=$video->id_video ?></code>, <code class="text-blue-400"><?=$_SESSION['pengguna_aktif'] ?></code>, <code class="text-blue-400">NOW()</code>, <code class="text-blue-400">0</code>, <code class="text-blue-400">0</code>);
-COMMIT;</pre>
 							</div>
-						</div>
-						<form action="" method="POST">
-							<div class="p-6 border-t flex flex-col">
-								<div class="w-full">
-									<textarea name="pertanyaan" id="" rows="5" class="w-full border rounded-md border-slate-300 p-2"></textarea>
-								</div>
-								<button class="px-6 py-2 rounded-md border bg-teal-500 text-white border-teal-400 ml-auto" type="submit">
-									Kirim
+							<div class="p-6">
+								<button class="px-6 py-2 rounded-md border bg-teal-500 text-white border-teal-400" type="submit">
+									Submit
 								</button>
 							</div>
 						</form>
-					<?php 
-						else:
-					?>
-						<div class="p-6 flex border-t">
-							<div class="w-full">
-								<div class="text-sm text-slate-500 mb-3">
-									Masuk untuk mulai diskusi
-								</div>
-								<div class="w-full">
-									<a href="/login" class="px-4 py-3 bg-teal-500 text-white rounded-md flex w-full text-center justify-center">
-										Masuk
-									</a>
-									<div class="text-slate-400">
-										atau
-									</div>
-									<a href="/register" class="px-4 py-3 bg-orange-500 text-white rounded-md flex w-full text-center justify-center">
-										Daftar
-									</a>
-								</div>
-							</div>
-						</div>
-					<?php 
+					</div>
+					<?php
 						endif;
 					?>
 				</div>

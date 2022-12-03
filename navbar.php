@@ -40,7 +40,7 @@
 			?>
 				<li class="transition-all duration-75
 								px-4 py-2 rounded-full text-slate-600
-								hover:text-slate-400 <?= isNavbar("masuk") ?> <?= isNavbar("masuk-admin") ?>">
+								hover:text-slate-400 <?= isNavbar("dasbor") ?>">
 					<a href="/pengguna" class="text-sm">
 						Dasbor
 					</a>

@@ -1,2 +1,4 @@
-echo "Aplikasi berjalan pada http://localhost:8000"
-php -S localhost:8000 -t .
+start start-server.bat
+echo "Membuka browser... dalam:"
+timeout 5
+start open-browser.bat

@@ -138,12 +138,12 @@ $sambungan->query($query_tabel_opsi_jawaban) && cetak("opsi_jawaban");
 
 $query_tabel_kuis_pengguna = "CREATE TABLE IF NOT EXISTS kuis_pengguna (
 	id_kuis_pengguna BIGINT AUTO_INCREMENT,
-	id_kuis BIGINT NOT NULL,
+	id_video BIGINT NOT NULL,
 	id_pengguna BIGINT NOT NULL,
 	tanggal DATETIME NOT NULL,
 	skor DECIMAL(5,2) NOT NULL,
 	PRIMARY KEY (id_kuis_pengguna),
-	FOREIGN KEY (id_kuis) REFERENCES kuis(id_kuis)
+	FOREIGN KEY (id_video) REFERENCES video_pembelajaran(id_video)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE,
 	FOREIGN KEY (id_pengguna) REFERENCES pengguna(id_pengguna)
@@ -154,6 +154,11 @@ $sambungan->query($query_tabel_kuis_pengguna) && cetak("kuis_pengguna");
 
 ?>
 <div>
+	<a href="/">
+		<button>
+			buka aplikasi
+		</button>
+	</a>
 	<a href="./drop-database.php">
 		<button>
 			reset database

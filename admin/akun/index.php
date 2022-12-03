@@ -87,11 +87,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 											Seluruh admin
 										</a>
 									</li>
-									<li class="transition-all duration-75 px-4 py-2 rounded-full text-slate-600 hover:text-slate-400 bg-slate-300">
-										<a href="/admin/admin/tambah-admin.php" class="text-sm">
-											Tambah
-										</a>
-									</li>
 								</ul>
 							</div>
 						</div>
