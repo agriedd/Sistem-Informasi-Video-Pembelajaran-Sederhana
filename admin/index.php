@@ -119,7 +119,7 @@ SELECT <code class="text-pink-400">email</code>, <code class="text-pink-400">nam
 								</a>
 							</li>
 							<li class="">
-								<a href="#" class="p-6 flex h-full hover:bg-slate-50 group">
+								<a href="/admin/akun" class="p-6 flex h-full hover:bg-slate-50 group">
 									<div class="text-2xl font-black text-slate-400 group-hover:text-slate-500 fill-slate-400 pr-4">
 										<svg xmlns="http://www.w3.org/2000/svg" width="2rem" height="2rem" class="bi bi-person-circle" viewBox="0 0 16 16">
 											<path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />

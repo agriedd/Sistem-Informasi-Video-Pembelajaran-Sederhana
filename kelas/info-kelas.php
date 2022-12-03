@@ -181,7 +181,6 @@ SELECT <code class="text-pink-400">*</code> FROM <code class="text-green-400">vi
 						endif;
 					?>
 				</div>
-				
 				<div class="bg-white rounded-md shadow-2xl shadow-slate-300">
 					<div class="p-6 flex border-b justify-between">
 						<div class="flex items-center justify-center">

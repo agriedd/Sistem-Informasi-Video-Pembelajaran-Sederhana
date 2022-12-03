@@ -2,7 +2,7 @@
 
 require_once "../sambungan.php";
 
-if (!($_SESSION['admin_aktif'] ?? false)) {
+if (!($_SESSION['pengguna_aktif'] ?? false)) {
 	header("Location: ../login");
 	exit();
 }
@@ -81,7 +81,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 		
 }
 
-if($video){
+if($video && isset($_SESSION['pengguna_aktif'])){
 	$query_mengambil_record_kuis = "SELECT *
 	FROM kuis
 	WHERE id_video = :id_video
